@@ -35,12 +35,15 @@ class Client(object):
         "usertoken": ""
     }
 
-    def __init__(self):
-        config = load()
-        if "devicetoken" in config:
-            self.token_set["devicetoken"] = config["devicetoken"]
-        if "usertoken" in config:
-            self.token_set["usertoken"] = config["usertoken"]
+    def __init__(self, config_path=None, token_set=None):
+        if token_set is None:
+            config = load(config_path)
+            if "devicetoken" in config:
+                self.token_set["devicetoken"] = config["devicetoken"]
+            if "usertoken" in config:
+                self.token_set["usertoken"] = config["usertoken"]
+        else:
+            self.token_set = token_set
 
     def request(self, method: str, path: str,
                 data=None,
@@ -91,7 +94,7 @@ class Client(object):
                              stream=stream)
         return r
 
-    def register_device(self, code: str):
+    def register_device(self, code: str, persist_config=True):
         """Registers a device on the Remarkable Cloud.
 
         This uses a unique code the user gets from
@@ -118,12 +121,13 @@ class Client(object):
         response = self.request("POST", DEVICE_TOKEN_URL, body=body)
         if response.ok:
             self.token_set["devicetoken"] = response.text
-            dump(self.token_set)
-            return True
+            if persist_config:
+                dump(self.token_set)
+            return self.token_set
         else:
             raise AuthError("Can't register device")
 
-    def renew_token(self):
+    def renew_token(self, persist_config=True):
         """Fetches a new user_token.
 
         This is the second step of the authentication of the Remarkable Cloud.
@@ -131,7 +135,7 @@ class Client(object):
         User tokens have an unknown expiration date.
 
         Returns:
-            True
+            token set
 
         Raises:
             AuthError: An error occurred while renewing the user token.
@@ -145,8 +149,9 @@ class Client(object):
             })
         if response.ok:
             self.token_set["usertoken"] = response.text
-            dump(self.token_set)
-            return True
+            if persist_config:
+                dump(self.token_set)
+            return self.token_set
         else:
             raise AuthError("Can't renew token: {e}".format(
                 e=response.status_code))

@@ -5,13 +5,14 @@ from yaml import dump as yml_dump
 from typing import Dict
 
 
-def load() -> dict:
+def load(config_path=None) -> dict:
     """Load the .rmapy config file"""
+    if config_path is None:
+        config_path = Path.joinpath(Path.home(), ".rmapi")
 
-    config_file_path = Path.joinpath(Path.home(), ".rmapi")
     config: Dict[str, str] = {}
-    if Path.exists(config_file_path):
-        with open(config_file_path, 'r') as config_file:
+    if Path.exists(config_path):
+        with open(config_path, 'r') as config_file:
             config = dict(yml_load(config_file.read(), Loader=BaseLoader))
 
     return config
