@@ -187,7 +187,7 @@ class Client(object):
 
         return collection
 
-    def get_doc(self, _id: str) -> Optional[DocumentOrFolder]:
+    def get_doc(self, _id: str, with_blob: bool = False) -> Optional[DocumentOrFolder]:
         """Get a meta item by ID
 
         Fetch a meta item from the Remarkable Cloud by ID.
@@ -205,7 +205,7 @@ class Client(object):
         response = self.request("GET", "/document-storage/json/2/docs",
                                 params={
                                     "doc": _id,
-                                    "withBlob": True
+                                    "withBlob": with_blob
                                 })
         log.debug(response.url)
         data_response = response.json()
